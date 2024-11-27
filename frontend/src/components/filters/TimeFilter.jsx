@@ -34,16 +34,17 @@ const TimeFilter = ({ filters, onChange }) => {
         position: 'absolute',
         top: 20,
         left: 20,
-        zIndex: 1,
+        zIndex: 1000,
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         padding: 3,
         borderRadius: 2,
         color: 'white',
         width: 300,
+        backdropFilter: 'blur(8px)'
       }}
     >
       <Typography variant="h6" gutterBottom>
-        Filters
+        Time Filters
       </Typography>
 
       {/* Multiple Year Selection */}
@@ -57,7 +58,9 @@ const TimeFilter = ({ filters, onChange }) => {
           renderValue={(selected) => selected.length === 0 ? 'All Years' : selected.join(', ')}
           sx={{ 
             color: 'white',
-            '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.5)' }
+            '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.5)' },
+            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.7)' },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' }
           }}
         >
           <MenuItem value="all">
@@ -88,7 +91,9 @@ const TimeFilter = ({ filters, onChange }) => {
             selected.map(month => getMonthName(month)).join(', ')}
           sx={{ 
             color: 'white',
-            '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.5)' }
+            '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.5)' },
+            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.7)' },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' }
           }}
         >
           <MenuItem value="all">
@@ -118,7 +123,9 @@ const TimeFilter = ({ filters, onChange }) => {
           renderValue={(selected) => selected.length === 0 ? 'All Days' : selected.join(', ')}
           sx={{ 
             color: 'white',
-            '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.5)' }
+            '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.5)' },
+            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.7)' },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' }
           }}
         >
           <MenuItem value="all">

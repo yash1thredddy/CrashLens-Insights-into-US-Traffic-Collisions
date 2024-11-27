@@ -52,3 +52,76 @@ body {
   left: 0;
   right: 0;
 }
+
+/* Add to index.css or create a new CSS file 
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  background: #061428;
+}
+
+.leaflet-tooltip {
+  background: rgba(0, 0, 0, 0.8) !important;
+  border: none !important;
+  color: white !important;
+  padding: 8px !important;
+  font-family: inherit !important;
+  border-radius: 4px !important;
+} */
+
+/* Map styles */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  background: #061428;
+}
+
+.county-tooltip {
+  background: rgba(0, 0, 0, 0.8) !important;
+  border: none !important;
+  color: white !important;
+  padding: 8px !important;
+  font-family: inherit !important;
+  border-radius: 4px !important;
+}
+
+/* Map Styles */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  background: #061428 !important;
+}
+
+.leaflet-tile-pane {
+  opacity: 1 !important;
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+  margin: 15px !important;
+}
+
+.leaflet-control-zoom a {
+  background: rgba(0, 0, 0, 0.8) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: rgba(0, 0, 0, 0.9) !important;
+}
+
+.county-tooltip {
+  background: rgba(0, 0, 0, 0.8) !important;
+  border: none !important;
+  color: white !important;
+  padding: 8px !important;
+  font-family: inherit !important;
+  border-radius: 4px !important;
+  z-index: 1000 !important;
+}
+
+.county-tooltip strong {
+  display: block;
+  margin-bottom: 4px;
+}
