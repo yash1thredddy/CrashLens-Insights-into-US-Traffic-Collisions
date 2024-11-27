@@ -1,10 +1,9 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from api.routes.accident_routes import accident_bp
-from api.routes.metadata_routes import metadata_bp
 from api.routes.spatial_routes import spatial_bp
-from api.routes.temporal_routes import temporal_bp
-from api.routes.weather_routes import weather_bp
+from api.routes.state_routes import state_bp
+
 from config.config import Config
 import os
 import psycopg2
@@ -31,12 +30,10 @@ def test_db():
         print(f"❌ Database connection failed: {str(e)}")
         return False
 
-# Register blueprints
+# Register blueprints - only register the ones we're using
 app.register_blueprint(accident_bp)
-app.register_blueprint(metadata_bp)
 app.register_blueprint(spatial_bp)
-app.register_blueprint(temporal_bp)
-app.register_blueprint(weather_bp)
+app.register_blueprint(state_bp)
 
 @app.before_request
 def before_request():

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import DeckGL from '@deck.gl/react';
 import { Map } from 'react-map-gl';
 import { HexagonLayer, HeatmapLayer, ContourLayer } from '@deck.gl/aggregation-layers';
-
+import TopAccidentsChart from './TopAccidentsChart';
 import { 
   Box, 
   Typography, 
@@ -10,7 +10,8 @@ import {
   CircularProgress,
   ToggleButtonGroup,
   ToggleButton,
-  Slider 
+  Slider,
+  FormControl, InputLabel, Select, MenuItem, Button
 } from '@mui/material';
 import axios from 'axios';
 import TimeFilter from '../filters/TimeFilter';
@@ -18,11 +19,19 @@ import TimeFilter from '../filters/TimeFilter';
 //import MapLegend from './MapLegend';
 import { MAPBOX_TOKEN, INITIAL_VIEW_STATE, HEXAGON_LAYER_SETTINGS } from '../../constants';
 
+const US_STATES = [
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+];
 
-function MapContainer() {
+function MapContainer({ onStateSelect }) {
   const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [chartState, setChartState] = useState(null);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     selectedYears: [2018],
@@ -103,41 +112,43 @@ const layers = useMemo(() => {
     pickable: true,
   };
 
-  // Define HexagonLayer and HeatmapLayer as before
- const hexagonLayer = new HexagonLayer({
-  ...commonProps,
-  id: 'hexagon',
-  getElevationWeight: d => d.severity,
-  ...HEXAGON_LAYER_SETTINGS,
-  elevationScale: filters.heightScale,
-  radius: filters.radius,
-  coverage: filters.coverage,
-  autoHighlight: true,
-  opacity: 0.8,
-  extruded: true,
-  colorRange: [
-    [255, 255, 178],
-    [254, 217, 118],
-    [254, 178, 76],
-    [253, 141, 60],
-    [252, 78, 42],
-    [227, 26, 28]
-  ],
-  onHover: (info) => {
-    if (info.object) {
-      setHoverInfo({
-        x: info.x,
-        y: info.y,
-        object: {
-          count: info.object.points.length,
-          
-        }
-      });
-    } else {
-      setHoverInfo(null);
+  const hexagonLayer = new HexagonLayer({
+    ...commonProps,
+    id: 'hexagon',
+    getElevationWeight: d => d.severity,
+    ...HEXAGON_LAYER_SETTINGS,
+    elevationScale: filters.heightScale,
+    radius: filters.radius,
+    coverage: filters.coverage,
+    autoHighlight: true,
+    opacity: 0.8,
+    extruded: true,
+    colorRange: [
+      [255, 255, 178],
+      [254, 217, 118],
+      [254, 178, 76],
+      [253, 141, 60],
+      [252, 78, 42],
+      [227, 26, 28]
+    ],
+    onHover: (info) => {
+      if (info.object) {
+        const points = info.object.points || [];
+        setHoverInfo({
+          x: info.x,
+          y: info.y,
+          object: {
+            count: points.length,
+            totalSeverity: points.reduce((sum, p) => sum + (p.severity || 0), 0),
+            avgSeverity: points.length > 0 ? 
+              (points.reduce((sum, p) => sum + (p.severity || 0), 0) / points.length).toFixed(2) : 0
+          }
+        });
+      } else {
+        setHoverInfo(null);
+      }
     }
-  }
-});
+  });
 
   const heatmapLayer = new HeatmapLayer({
     ...commonProps,
@@ -182,7 +193,7 @@ const layers = useMemo(() => {
 
 
 const renderHoverTooltip = () => {
-  if (!hoverInfo || !hoverInfo.object) return null;
+  if (!hoverInfo?.object) return null;
 
   return (
     <div
@@ -198,12 +209,11 @@ const renderHoverTooltip = () => {
         color: '#fff'
       }}
     >
-      <div>Count: {hoverInfo.object.count || 'N/A'}</div>
-      
+      <div>Points: {hoverInfo.object.count?.toLocaleString() || 'N/A'}</div>
+      <div>Avg Severity: {hoverInfo.object.avgSeverity || 'N/A'}</div>
     </div>
   );
 };
-
 
   
   const renderStatistics = () => {
@@ -320,12 +330,55 @@ const renderHoverTooltip = () => {
           reuseMaps
         />
       </DeckGL>
-
+      {/* Add TopAccidentsChart here */}
+      <Box sx={{ position: 'absolute', right: 20, top: 300, zIndex: 8 }}>
+      <TopAccidentsChart 
+        filters={filters}
+        selectedState={chartState}  // Use chartState instead of filters.state
+        onStateSelect={(state) => {
+          setChartState(state);  // This only updates the chart's state filter
+        }}
+      />
+      </Box>
       <TimeFilter 
         filters={filters}
         onChange={setFilters}
       />
       
+      {/* State Selection Controls */}
+<Box
+  sx={{
+    position: 'absolute',
+    top: 650,
+    left: 20,
+    bgcolor: 'rgba(0, 0, 0, 0.8)',
+    color: 'white',
+    p: 2,
+    borderRadius: 1,
+    zIndex: 1,
+    width: 250
+  }}
+>
+  <FormControl fullWidth sx={{ mb: 2 }}>
+    <InputLabel sx={{ color: 'white' }}>Select State</InputLabel>
+    <Select
+      value=""
+      onChange={(e) => onStateSelect(e.target.value)}  // This handles map navigation
+      sx={{
+        color: 'white',
+        '.MuiOutlinedInput-notchedOutline': {
+          borderColor: 'rgba(255, 255, 255, 0.5)'
+        }
+      }}
+    >
+      <MenuItem value="">United States</MenuItem>
+      {US_STATES.map(state => (
+        <MenuItem key={state} value={state}>{state}</MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+</Box>
+
       {renderHoverTooltip()}
       {renderStatistics()}
 
