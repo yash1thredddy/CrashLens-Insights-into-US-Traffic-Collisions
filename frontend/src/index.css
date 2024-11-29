@@ -125,3 +125,13 @@ body {
   display: block;
   margin-bottom: 4px;
 }
+
+.draggable-chart {
+  position: fixed !important;
+  z-index: 9999;
+  cursor: move;
+}
+
+.draggable-chart .drag-handle {
+  cursor: move;
+}
