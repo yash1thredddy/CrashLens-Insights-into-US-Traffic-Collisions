@@ -19,15 +19,24 @@ import axios from 'axios';
 import TimeFilter from '../filters/TimeFilter';
 import { scaleQuantize } from 'd3-scale';
 import 'leaflet/dist/leaflet.css';
+import CountyTimeChart from './CountyTimeChart';
 
 // Fix Leaflet default icon issue
+// Replace the existing Leaflet icon configuration with this:
 import L from 'leaflet';
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-  iconUrl: require('leaflet/dist/images/marker-icon.png'),
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
 });
+
+L.Marker.prototype.options.icon = DefaultIcon;
 
 // State center positions map
 const STATE_CENTERS = {
@@ -95,6 +104,10 @@ function StateMapContainer({ stateName, onBackToNational }) {
     visualizationType: 'accidents' // 'accidents' or 'severity'
   });
 
+  const [showTimeChart, setShowTimeChart] = useState(false);
+  const [timeChartData, setTimeChartData] = useState(null);
+  const [timeChartLoading, setTimeChartLoading] = useState(false);
+
   // Create color scale
   const colorScale = useMemo(() => 
     scaleQuantize()
@@ -159,14 +172,14 @@ function StateMapContainer({ stateName, onBackToNational }) {
 
   // County interaction handlers
   const onEachCounty = (feature, layer) => {
-    const props = feature.properties;
+    const properties = feature.properties;
     
     const tooltipContent = `
       <div class="county-tooltip">
-        <strong>${props.name} County</strong><br/>
-        Accidents: ${props.accident_count.toLocaleString()}<br/>
-        Severity: ${props.avg_severity.toFixed(2)}<br/>
-        ${props.common_weather ? `Weather: ${props.common_weather}` : ''}
+        <strong>${properties.name} County</strong><br/>
+        Accidents: ${properties.accident_count.toLocaleString()}<br/>
+        Severity: ${properties.avg_severity.toFixed(2)}
+        ${properties.common_weather ? `<br/>Weather: ${properties.common_weather}` : ''}
       </div>
     `;
 
@@ -176,15 +189,18 @@ function StateMapContainer({ stateName, onBackToNational }) {
     });
 
     layer.on({
-      click: () => setSelectedCounty(props.name),
+      click: () => {
+        setSelectedCounty(properties.name);
+        setShowTimeChart(false); // Reset time chart when selecting new county
+      },
       mouseover: () => layer.setStyle({ fillOpacity: 0.9, weight: 2 }),
       mouseout: () => {
-        if (props.name !== selectedCounty) {
+        if (properties.name !== selectedCounty) {
           layer.setStyle({ fillOpacity: 0.7, weight: 1 });
         }
       }
     });
-  };
+  }
 
   // Render statistics panel
   const renderStatistics = () => {
@@ -258,73 +274,151 @@ function StateMapContainer({ stateName, onBackToNational }) {
   };
 
   // Render selected county details
-  const renderCountyDetails = () => {
-    if (!selectedCounty || !data?.geojson) return null;
+const renderCountyDetails = () => {
+  if (!selectedCounty || !data?.geojson) return null;
 
-    const countyData = data.geojson.features.find(
-      f => f.properties.name === selectedCounty
-    );
+  const countyData = data.geojson.features.find(
+    f => f.properties.name === selectedCounty
+  );
 
-    if (!countyData) return null;
+  if (!countyData) return null;
 
-    const props = countyData.properties;
+  const props = countyData.properties;
 
-    return (
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: 20,
-          transform: 'translateY(-50%)',
-          bgcolor: 'rgba(0, 0, 0, 0.8)',
-          color: 'white',
-          p: 2,
-          borderRadius: 1,
-          zIndex: 1000,
-          maxWidth: '300px'
-        }}
-      >
+  // Format numbers with commas
+  const formatNumber = (num) => num.toLocaleString();
+
+  return (
+    <Box
+      sx={{
+        position: 'absolute',
+        top: '65%',
+        left: 20,
+        transform: 'translateY(-50%)',
+        bgcolor: 'rgba(0, 0, 0, 0.8)',
+        color: 'white',
+        p: 3,
+        borderRadius: 2,
+        zIndex: 1000,
+        maxWidth: '350px',
+        backdropFilter: 'blur(8px)',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+      }}
+    >
+      {/* Header */}
+      <Box sx={{ borderBottom: '1px solid rgba(255, 255, 255, 0.2)', pb: 1, mb: 2 }}>
         <Typography variant="h6" gutterBottom>
           {selectedCounty} County
         </Typography>
-        
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="body2">
-            Total Accidents: {props.accident_count.toLocaleString()}
-          </Typography>
-          <Typography variant="body2">
-            Average Severity: {props.avg_severity.toFixed(2)}
-          </Typography>
-          <Typography variant="body2">
-            Percentage of State: {props.percentage_of_total.toFixed(1)}%
-          </Typography>
-          
-          {props.cities && props.cities.length > 0 && (
-            <Box sx={{ mt: 1 }}>
-              <Typography variant="body2">
-                Cities: {props.cities.slice(0, 3).join(', ')}
-                {props.cities.length > 3 && '...'}
-              </Typography>
-            </Box>
-          )}
+        <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+          {stateName}
+        </Typography>
+      </Box>
 
-          {props.common_weather && (
-            <Typography variant="body2">
-              Common Weather: {props.common_weather}
-            </Typography>
-          )}
+      {/* Main Stats */}
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+            Total Accidents:
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+            {formatNumber(props.accident_count)}
+          </Typography>
         </Box>
 
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+            Average Severity:
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+            {props.avg_severity.toFixed(2)}
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+            Percentage of State:
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+            {props.percentage_of_total.toFixed(1)}%
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Additional Info */}
+      {props.cities && props.cities.length > 0 && (
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', mb: 0.5 }}>
+            Major Cities:
+          </Typography>
+          <Typography variant="body2">
+            {props.cities.slice(0, 3).join(', ')}
+            {props.cities.length > 3 && (
+              <Typography component="span" variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                {' '}(+{props.cities.length - 3} more)
+              </Typography>
+            )}
+          </Typography>
+        </Box>
+      )}
+
+      {props.common_weather && (
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', mb: 0.5 }}>
+            Common Weather:
+          </Typography>
+          <Typography variant="body2">
+            {props.common_weather}
+          </Typography>
+        </Box>
+      )}
+
+      {/* Action Buttons */}
+      <Box sx={{ 
+        mt: 2, 
+        pt: 2, 
+        borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+        display: 'flex', 
+        gap: 2 
+      }}>
         <Button
           size="small"
-          sx={{ mt: 2, color: 'white' }}
-          onClick={() => setSelectedCounty(null)}
+          variant="contained"
+          onClick={() => setShowTimeChart(true)}
+          sx={{
+            bgcolor: '#2196f3',
+            color: 'white',
+            '&:hover': {
+              bgcolor: '#1976d2'
+            },
+            flex: 1
+          }}
+        >
+          Time Analysis
+        </Button>
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => {
+            setSelectedCounty(null);
+            setShowTimeChart(false);
+          }}
+          sx={{
+            color: 'white',
+            borderColor: 'rgba(255, 255, 255, 0.5)',
+            '&:hover': {
+              borderColor: 'white',
+              bgcolor: 'rgba(255, 255, 255, 0.1)'
+            },
+            flex: 1
+          }}
         >
           Clear Selection
         </Button>
       </Box>
-    );
-  };
+    </Box>
+  );
+};
 
   return (
     <Box sx={{ width: '100vw', height: '100vh', position: 'relative', bgcolor: '#061428' }}>
@@ -348,6 +442,38 @@ function StateMapContainer({ stateName, onBackToNational }) {
           />
         )}
       </MapContainer>
+
+            {/* Add Time Analysis Chart */}
+      
+      {showTimeChart && selectedCounty && (
+        <Box
+          sx={{
+            position: 'fixed',  // Changed from absolute to fixed
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100%',
+            height: '100%',
+            zIndex: 1000,
+            pointerEvents: 'none'
+          }}
+        >
+          <div style={{ 
+            position: 'relative', 
+            width: '100%', 
+            height: '100%', 
+            pointerEvents: 'auto' 
+          }}>
+            <CountyTimeChart
+              county={selectedCounty}
+              state={stateName}
+              filters={filters}
+              onClose={() => setShowTimeChart(false)}
+            />
+          </div>
+        </Box>
+      )}
 
       {/* Back Button */}
       <Box sx={{
