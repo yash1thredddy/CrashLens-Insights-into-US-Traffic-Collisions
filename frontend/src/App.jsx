@@ -3,6 +3,7 @@ import { Box } from '@mui/material';
 import MapContainer from './components/map/MapContainer';
 import StateMapContainer from './components/map/StateMapContainer';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import 'leaflet/dist/leaflet.css';
 
 function App() {
   // Keep your existing filters state
