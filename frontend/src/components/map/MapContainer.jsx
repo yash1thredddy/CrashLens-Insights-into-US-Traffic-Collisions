@@ -425,8 +425,8 @@ const renderHoverTooltip = () => {
 <Box
   sx={{
     position: 'absolute',
-    top: 650,
-    left: 20,
+    top: 10,
+    left: 360,
     bgcolor: 'rgba(0, 0, 0, 0.8)',
     color: 'white',
     p: 2,
@@ -508,7 +508,7 @@ const renderHoverTooltip = () => {
 <Box
   sx={{
     position: 'absolute',
-    top: 350,
+    top: 320,
     left: 20,
     bgcolor: 'rgba(0, 0, 0, 0.8)',
     color: 'white',
@@ -553,7 +553,7 @@ const renderHoverTooltip = () => {
   >
     <ToggleButton value="hexagon">Hexagon</ToggleButton>
     <ToggleButton value="heatmap">Heatmap</ToggleButton>
-    <ToggleButton value="contour">Contour</ToggleButton>
+   
   </ToggleButtonGroup>
 </Box>
 
@@ -564,7 +564,7 @@ const renderHoverTooltip = () => {
   <Box
     sx={{
       position: 'absolute',
-      top: 500,
+      top: 450,
       left: 20,
       zIndex: 6,
       p: 5,
@@ -595,7 +595,7 @@ const renderHoverTooltip = () => {
         sx={{
           position: 'absolute',
           bottom: 20,
-          right: 20,
+          left: 20,
           bgcolor: 'rgba(0, 0, 0, 0.8)',
           color: 'white',
           p: 2,
@@ -627,24 +627,7 @@ const renderHoverTooltip = () => {
       </Box>
 
       {/* Data Count Indicator */}
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: 20,
-          left: 20,
-          bgcolor: 'rgba(0, 0, 0, 0.8)',
-          color: 'white',
-          p: 1,
-          borderRadius: 1,
-          zIndex: 1
-        }}
-      >
-        {data?.points && (
-          <Typography variant="body2">
-            Showing {data.points.length.toLocaleString()} accidents
-          </Typography>
-        )}
-      </Box>
+
     </Box>
   );
 }
