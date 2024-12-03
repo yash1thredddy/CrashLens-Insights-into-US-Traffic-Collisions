@@ -299,7 +299,7 @@ const renderCountyDetails = () => {
     <Box
       sx={{
         position: 'absolute',
-        top: '65%',
+        top: '57%',
         left: 20,
         transform: 'translateY(-50%)',
         bgcolor: 'rgba(0, 0, 0, 0.8)',
@@ -513,8 +513,8 @@ const renderCountyDetails = () => {
   filters={filters}
   onChange={setFilters}
   sx={{
-    top: 80, // Adjust this value to position below the back button
-    left: 20,
+    top: 0, // Adjust this value to position below the back button
+    left: 50,
     zIndex: 1001 // Ensure it's above other controls
   }}
 />
@@ -522,8 +522,8 @@ const renderCountyDetails = () => {
       {/* Visualization Type Toggle */}
       <Box sx={{
         position: 'absolute',
-        top: 480,
-        left: 20,
+        top: 310,
+        right: 20,
         bgcolor: 'rgba(0, 0, 0, 0.8)',
         color: 'white',
         p: 2,
