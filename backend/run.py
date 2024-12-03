@@ -4,7 +4,10 @@ from api.routes.accident_routes import accident_bp
 from api.routes.spatial_routes import spatial_bp
 from api.routes.state_routes import state_bp
 from api.routes.county_time_routes import county_time_bp
+# In run.py, add:
+from api.routes.analysis_routes import analysis_bp
 
+# Register the blueprint
 from config.config import Config
 import os
 import psycopg2
@@ -36,6 +39,7 @@ app.register_blueprint(accident_bp)
 app.register_blueprint(spatial_bp)
 app.register_blueprint(state_bp)
 app.register_blueprint(county_time_bp)
+app.register_blueprint(analysis_bp)
 
 @app.before_request
 def before_request():
