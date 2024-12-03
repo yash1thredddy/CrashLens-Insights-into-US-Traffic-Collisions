@@ -1,8 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import DeckGL from '@deck.gl/react';
 import { Map } from 'react-map-gl';
 import { HexagonLayer, HeatmapLayer, ContourLayer } from '@deck.gl/aggregation-layers';
 import TopAccidentsChart from './TopAccidentsChart';
+import { GeoJsonLayer } from '@deck.gl/layers';
+
 import { 
   Box, 
   Typography, 
@@ -18,6 +20,7 @@ import TimeFilter from '../filters/TimeFilter';
 //import VisualizationToggle from '../controls/VisualizationToggle';
 //import MapLegend from './MapLegend';
 import { MAPBOX_TOKEN, INITIAL_VIEW_STATE, HEXAGON_LAYER_SETTINGS } from '../../constants';
+import AreaSelector from './AreaSelector';
 
 const US_STATES = [
   'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
@@ -32,6 +35,8 @@ function MapContainer({ onStateSelect }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [chartState, setChartState] = useState(null);
+  const [selectedArea, setSelectedArea] = useState(null);
+  const areaRef = useRef(null); 
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     selectedYears: [2018],
@@ -65,9 +70,7 @@ useEffect(() => {
       if (filters.selectedDays.length > 0) {
         filters.selectedDays.forEach((day) => params.append('days[]', day));
       }
-      if (filters.state) {
-        params.append('state', filters.state);
-      }
+ 
 
       console.log('Fetching data with params:', params.toString());
 
@@ -99,99 +102,152 @@ useEffect(() => {
   filters.selectedYears,
   filters.selectedMonths,
   filters.selectedDays,
-  filters.state,
+  
 ]);
 
+  const handleAreaSelect = useCallback((bounds) => {
+    setSelectedArea(bounds);
+    // Update filters with the selected area
+    setFilters(prev => ({
+      ...prev,
+      bounds: bounds
+    }));
+  }, []);
+
+  const handleClearArea = useCallback(() => {
+    setSelectedArea(null);
+    // Remove bounds from filters
+    setFilters(prev => {
+      const newFilters = { ...prev };
+      delete newFilters.bounds;
+      return newFilters;
+    });
+  }, []);
+
+  // If you have a selected area, create a GeoJSON layer for it
+  const areaLayer = useMemo(() => {
+    if (!selectedArea) return null;
+
+    return new GeoJsonLayer({
+      id: 'selected-area',
+      data: {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [[
+            [selectedArea.minLng, selectedArea.minLat],
+            [selectedArea.maxLng, selectedArea.minLat],
+            [selectedArea.maxLng, selectedArea.maxLat],
+            [selectedArea.minLng, selectedArea.maxLat],
+            [selectedArea.minLng, selectedArea.minLat]
+          ]]
+        }
+      },
+      stroked: true,
+      filled: true,
+      lineWidthMinPixels: 2,
+      getFillColor: [255, 255, 255, 20],
+      getLineColor: [255, 255, 255, 80]
+    });
+  }, [selectedArea]);
 
 const layers = useMemo(() => {
   if (!data?.points || data.points.length === 0) return [];
 
+  const activeLayers = [];
   const commonProps = {
     data: data.points,
     getPosition: d => [d.lng, d.lat],
     pickable: true,
   };
 
-  const hexagonLayer = new HexagonLayer({
-    ...commonProps,
-    id: 'hexagon',
-    getElevationWeight: d => d.severity,
-    ...HEXAGON_LAYER_SETTINGS,
-    elevationScale: filters.heightScale,
-    radius: filters.radius,
-    coverage: filters.coverage,
-    autoHighlight: true,
-    opacity: 0.8,
-    extruded: true,
-    colorRange: [
-      [255, 255, 178],
-      [254, 217, 118],
-      [254, 178, 76],
-      [253, 141, 60],
-      [252, 78, 42],
-      [227, 26, 28]
-    ],
-    onHover: (info) => {
-      if (info.object) {
-        const points = info.object.points || [];
-        setHoverInfo({
-          x: info.x,
-          y: info.y,
-          object: {
-            count: points.length,
-            totalSeverity: points.reduce((sum, p) => sum + (p.severity || 0), 0),
-            avgSeverity: points.length > 0 ? 
-              (points.reduce((sum, p) => sum + (p.severity || 0), 0) / points.length).toFixed(2) : 0
-          }
-        });
-      } else {
-        setHoverInfo(null);
-      }
-    }
-  });
-
-  const heatmapLayer = new HeatmapLayer({
-    ...commonProps,
-    id: 'heatmap',
-    getWeight: d => d.severity,
-    aggregation: 'SUM',
-    radiusPixels: filters.cellSize * 10,
-    intensity: filters.intensity,
-    threshold: 0.05,
-    colorRange: [
-      [255, 255, 178],
-      [254, 217, 118],
-      [254, 178, 76],
-      [253, 141, 60],
-      [252, 78, 42],
-      [227, 26, 28]
-    ]
-  });
-
-  // Add ContourLayer with its own properties
-  const contourLayer = new ContourLayer({
-    ...commonProps,
-    id: 'contour',
-    contours: [{ threshold: 1, color: [255, 0, 0], strokeWidth: 2 }],
-    cellSize: filters.cellSize * 10,
-    getWeight: d => d.severity,
-    opacity: 0.5
-  });
-
-  // Return the layer based on the selected visualization type
+  // Add visualization layer based on type
   switch (filters.visualizationType) {
     case 'hexagon':
-      return [hexagonLayer];
+      activeLayers.push(new HexagonLayer({
+        ...commonProps,
+        id: 'hexagon',
+        getElevationWeight: d => d.severity,
+        ...HEXAGON_LAYER_SETTINGS,
+        elevationScale: filters.heightScale,
+        radius: filters.radius,
+        coverage: filters.coverage,
+        autoHighlight: true,
+        opacity: 0.8,
+        extruded: true,
+        colorRange: [
+          [255, 255, 178],
+          [254, 217, 118],
+          [254, 178, 76],
+          [253, 141, 60],
+          [252, 78, 42],
+          [227, 26, 28]
+        ],
+        onHover: (info) => {
+          setHoverInfo(info.object ? {
+            x: info.x,
+            y: info.y,
+            object: {
+              count: info.object.points?.length || 0,
+              avgSeverity: info.object.points?.length > 0 ? 
+                (info.object.points.reduce((sum, p) => sum + (p.severity || 0), 0) / info.object.points.length).toFixed(2) : 0
+            }
+          } : null);
+        }
+      }));
+      break;
     case 'heatmap':
-      return [heatmapLayer];
+      activeLayers.push(new HeatmapLayer({
+        ...commonProps,
+        id: 'heatmap',
+        getWeight: d => d.severity,
+        aggregation: 'SUM',
+        radiusPixels: filters.cellSize * 10,
+        intensity: filters.intensity,
+        threshold: 0.05,
+        colorRange: [
+          [255, 255, 178],
+          [254, 217, 118],
+          [254, 178, 76],
+          [253, 141, 60],
+          [252, 78, 42],
+          [227, 26, 28]
+        ]
+      }));
+      break;
     case 'contour':
-      return [contourLayer];
+      activeLayers.push(new ContourLayer({
+        ...commonProps,
+        id: 'contour',
+        contours: [{ threshold: 1, color: [255, 0, 0], strokeWidth: 2 }],
+        cellSize: filters.cellSize * 10,
+        getWeight: d => d.severity,
+        opacity: 0.5
+      }));
+      break;
     default:
-      return [];
+        activeLayers.push(new HexagonLayer({  // Use hexagon layer as default
+          // ... hexagon layer props
+        }));
+        break;
   }
-}, [data, filters]);
+
+  // Add area selection layer if exists
+  if (selectedArea) {
+    activeLayers.push(areaLayer);
+  }
+
+  return activeLayers;
+}, [data, filters, selectedArea, areaLayer, setHoverInfo]);
+  
 
 
+
+
+ 
+
+
+      
 const renderHoverTooltip = () => {
   if (!hoverInfo?.object) return null;
 
@@ -323,6 +379,20 @@ const renderHoverTooltip = () => {
         }}
         layers={layers}
         onViewStateChange={({ viewState: newViewState }) => setViewState(newViewState)}
+        onClick={(info, event) => {
+          if (!event.lngLat) return;
+          
+          const mapClickEvent = {
+            lngLat: {
+              lng: event.lngLat[0],
+              lat: event.lngLat[1]
+            }
+          };
+          
+          if (areaRef.current?.handleMapClick) {
+            areaRef.current.handleMapClick(mapClickEvent);
+          }
+        }}
       >
         <Map
           mapboxAccessToken={MAPBOX_TOKEN}
@@ -331,19 +401,25 @@ const renderHoverTooltip = () => {
         />
       </DeckGL>
       {/* Add TopAccidentsChart here */}
-      <Box sx={{ position: 'absolute', right: 20, top: 300, zIndex: 8 }}>
-      <TopAccidentsChart 
-        filters={filters}
-        selectedState={chartState}  // Use chartState instead of filters.state
-        onStateSelect={(state) => {
-          setChartState(state);  // This only updates the chart's state filter
-        }}
-      />
+      <Box sx={{ position: 'absolute', right: 20, top: 350, zIndex: 8 }}>
+        <TopAccidentsChart 
+          filters={filters}
+          selectedState={chartState}
+          onStateSelect={(state) => {
+            setChartState(state);
+            // Also update the main filters
+            setFilters(prev => ({
+              ...prev,
+              state: state
+            }));
+          }}
+        />
       </Box>
       <TimeFilter 
         filters={filters}
         onChange={setFilters}
       />
+
       
       {/* State Selection Controls */}
 <Box

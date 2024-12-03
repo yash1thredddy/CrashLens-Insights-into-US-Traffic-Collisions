@@ -264,7 +264,9 @@ def get_states():
             ORDER BY state
         """
         results = execute_query(query)
-        return jsonify([row['state'] for row in results])
+        states = [row['state'] for row in results]
+        print(f"Returning states: {states}")  # Add this log
+        return jsonify(states)
     except Exception as e:
         print(f"Error in get_states: {str(e)}")
         return jsonify({

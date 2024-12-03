@@ -32,3 +32,5 @@ class QueryBuilder:
 
         where_clause = " AND ".join(conditions) if conditions else "1=1"
         return where_clause, query_params
+
+        

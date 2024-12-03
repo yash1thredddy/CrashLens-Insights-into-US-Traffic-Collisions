@@ -20,6 +20,7 @@ import TimeFilter from '../filters/TimeFilter';
 import { scaleQuantize } from 'd3-scale';
 import 'leaflet/dist/leaflet.css';
 import CountyTimeChart from './CountyTimeChart';
+import ChartErrorBoundary from './ChartErrorBoundary';
 
 // Fix Leaflet default icon issue
 // Replace the existing Leaflet icon configuration with this:
@@ -101,6 +102,7 @@ function StateMapContainer({ stateName, onBackToNational }) {
     selectedYears: [2018],
     selectedMonths: [],
     selectedDays: [],
+    selectedHours: [],
     visualizationType: 'accidents' // 'accidents' or 'severity'
   });
 
@@ -119,40 +121,45 @@ function StateMapContainer({ stateName, onBackToNational }) {
     []
   );
 
+    const handleTimeFilterChange = (newFilters) => {
+    setFilters(prev => ({
+      ...prev,
+      ...newFilters
+    }));
+  };
+
   // Fetch data
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        setError(null);
-
         const params = new URLSearchParams();
         params.append('state', stateName);
         
-        if (filters.selectedYears.length > 0) {
+        // Apply all time filters
+        if (filters.selectedYears?.length > 0) {
           filters.selectedYears.forEach(year => params.append('years[]', year));
         }
-        if (filters.selectedMonths.length > 0) {
+        if (filters.selectedMonths?.length > 0) {
           filters.selectedMonths.forEach(month => params.append('months[]', month));
         }
-        if (filters.selectedDays.length > 0) {
+        if (filters.selectedDays?.length > 0) {
           filters.selectedDays.forEach(day => params.append('days[]', day));
+        }
+        if (filters.selectedHours?.length > 0) {
+          filters.selectedHours.forEach(hour => params.append('hours[]', hour));
         }
 
         const response = await axios.get(`/api/state/details?${params}`);
         setData(response.data);
-
       } catch (error) {
-        console.error('Error fetching state data:', error);
-        setError(error.response?.data?.message || 'Failed to load state data');
+        setError(error.message);
       } finally {
         setLoading(false);
       }
     };
 
-    if (stateName) {
-      fetchData();
-    }
+    fetchData();
   }, [stateName, filters]);
 
   // Style handler for counties
@@ -445,35 +452,39 @@ const renderCountyDetails = () => {
 
             {/* Add Time Analysis Chart */}
       
-      {showTimeChart && selectedCounty && (
-        <Box
-          sx={{
-            position: 'fixed',  // Changed from absolute to fixed
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            width: '100%',
-            height: '100%',
-            zIndex: 1000,
-            pointerEvents: 'none'
+    {showTimeChart && selectedCounty && (
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100%',
+          height: '100vh',
+          zIndex: 1000,
+          bgcolor: 'rgba(0, 0, 0, 0.5)',  // Add overlay background
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        <ChartErrorBoundary 
+          onRetry={() => {
+            setShowTimeChart(false);
+            setTimeout(() => setShowTimeChart(true), 100);
           }}
         >
-          <div style={{ 
-            position: 'relative', 
-            width: '100%', 
-            height: '100%', 
-            pointerEvents: 'auto' 
-          }}>
-            <CountyTimeChart
-              county={selectedCounty}
-              state={stateName}
-              filters={filters}
-              onClose={() => setShowTimeChart(false)}
-            />
-          </div>
-        </Box>
-      )}
+          <CountyTimeChart
+            county={selectedCounty}
+            state={stateName}
+            filters={filters}
+            onClose={() => setShowTimeChart(false)}
+            onFilterChange={handleTimeFilterChange}
+          />
+        </ChartErrorBoundary>
+      </Box>
+    )}
 
       {/* Back Button */}
       <Box sx={{
@@ -511,7 +522,7 @@ const renderCountyDetails = () => {
       {/* Visualization Type Toggle */}
       <Box sx={{
         position: 'absolute',
-        top: 400,
+        top: 480,
         left: 20,
         bgcolor: 'rgba(0, 0, 0, 0.8)',
         color: 'white',

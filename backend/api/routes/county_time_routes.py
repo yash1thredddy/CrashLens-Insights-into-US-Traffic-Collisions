@@ -87,10 +87,13 @@ def get_county_time_analysis():
         }
 
         # Fill in missing values with zeros
+        # Fill in missing values with zeros
         max_values = {'hour': 24, 'day': 7, 'month': 12}
         value_map = {row['time_value']: row['accident_count'] for row in results}
-        
-        for i in range(max_values[time_type]):
+
+        # For months, start from 1 to include December (12)
+        start_value = 1 if time_type == 'month' else 0
+        for i in range(start_value, max_values[time_type] + (1 if time_type == 'month' else 0)):
             data['timeValues'].append(i)
             data['accidentCounts'].append(value_map.get(i, 0))
 
