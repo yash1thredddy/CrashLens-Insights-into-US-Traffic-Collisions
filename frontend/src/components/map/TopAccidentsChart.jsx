@@ -13,6 +13,14 @@ import {
 import { Map } from 'lucide-react';
 import axios from 'axios';
 
+const US_STATES = [
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+];
+
 const TopAccidentsChart = ({ filters, selectedState, onStateSelect }) => {
   const [viewType, setViewType] = useState('state');
   const [data, setData] = useState([]);
@@ -23,17 +31,10 @@ const TopAccidentsChart = ({ filters, selectedState, onStateSelect }) => {
   const svgRef = useRef(null);
 
   // Fetch states list on component mount
-  useEffect(() => {
-    const fetchStates = async () => {
-      try {
-        const response = await axios.get('/api/spatial/states');
-        setStatesList(response.data);
-      } catch (err) {
-        console.error('Error fetching states:', err);
-      }
-    };
-    fetchStates();
-  }, []);
+useEffect(() => {
+  // Instead of fetching from API, just use the constant array
+  setStatesList(US_STATES);
+}, []);
 
   // Reset selections when view type changes
   useEffect(() => {
@@ -270,26 +271,26 @@ bars.on('mouseover', function(event, d) {
           </Select>
         </FormControl>
 
-        {(viewType === 'county' || viewType === 'city') && (
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <FormLabel sx={{ color: 'white', mb: 1 }}>State</FormLabel>
-            <Select
-              value={selectedState || ''}
-              onChange={(e) => onStateSelect(e.target.value)}
-              sx={{
-                color: 'white',
-                '.MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'rgba(255, 255, 255, 0.3)'
-                }
-              }}
-            >
-              <MenuItem value="">All States</MenuItem>
-              {statesList.map(state => (
-                <MenuItem key={state} value={state}>{state}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
+      {(viewType === 'county' || viewType === 'city') && (
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <FormLabel sx={{ color: 'white', mb: 1 }}>State</FormLabel>
+          <Select
+            value={selectedState || ''}
+            onChange={(e) => onStateSelect(e.target.value)}
+            sx={{
+              color: 'white',
+              '.MuiOutlinedInput-notchedOutline': {
+                borderColor: 'rgba(255, 255, 255, 0.3)'
+              }
+            }}
+          >
+            <MenuItem value="">All States</MenuItem>
+            {US_STATES.map(state => (
+              <MenuItem key={state} value={state}>{state}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
 
         {viewType === 'city' && selectedState && (
           <FormControl size="small" sx={{ minWidth: 120 }}>

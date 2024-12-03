@@ -11,18 +11,23 @@ import {
   OutlinedInput
 } from '@mui/material';
 
-const TimeFilter = ({ filters, onChange }) => {
-  // Year range from 2016 to 2023
+const TimeFilter = ({ filters, onChange, sx = {} }) => {
   const years = Array.from({ length: 8 }, (_, i) => 2016 + i);
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
-  const handleChange = (field, value) => {
-    onChange({
-      ...filters,
-      [field]: value
-    });
+const handleChange = (field, value) => {
+  // If we're viewing day of week analysis, don't update calendar days
+  if (field === 'selectedDays' && filters.selectedDayOfWeek) {
+    return;
+  }
+
+  const newFilters = {
+    ...filters,
+    [field]: value
   };
+  onChange(newFilters);
+};
 
   const getMonthName = (month) => {
     return new Date(2000, month - 1).toLocaleString('default', { month: 'long' });
@@ -32,22 +37,19 @@ const TimeFilter = ({ filters, onChange }) => {
     <Box
       sx={{
         position: 'absolute',
-        top: 20,
-        left: 20,
-        zIndex: 1000,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        bgcolor: 'rgba(0, 0, 0, 0.8)',
         padding: 3,
         borderRadius: 2,
         color: 'white',
         width: 300,
-        backdropFilter: 'blur(8px)'
+        backdropFilter: 'blur(8px)',
+        ...sx
       }}
     >
       <Typography variant="h6" gutterBottom>
         Time Filters
       </Typography>
 
-      {/* Multiple Year Selection */}
       <FormControl fullWidth sx={{ mb: 2 }}>
         <InputLabel sx={{ color: 'white' }}>Years</InputLabel>
         <Select
@@ -55,21 +57,12 @@ const TimeFilter = ({ filters, onChange }) => {
           value={filters.selectedYears || []}
           onChange={(e) => handleChange('selectedYears', e.target.value)}
           input={<OutlinedInput label="Years" />}
-          renderValue={(selected) => selected.length === 0 ? 'All Years' : selected.join(', ')}
+          renderValue={(selected) => selected.join(', ')}
           sx={{ 
             color: 'white',
-            '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.5)' },
-            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.7)' },
-            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' }
+            '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.5)' }
           }}
         >
-          <MenuItem value="all">
-            <Checkbox 
-              checked={filters.selectedYears?.length === 0}
-              indeterminate={filters.selectedYears?.length > 0 && filters.selectedYears?.length < years.length}
-            />
-            <ListItemText primary="All Years" />
-          </MenuItem>
           {years.map(year => (
             <MenuItem key={year} value={year}>
               <Checkbox checked={filters.selectedYears?.includes(year) || false} />
@@ -79,7 +72,6 @@ const TimeFilter = ({ filters, onChange }) => {
         </Select>
       </FormControl>
 
-      {/* Multiple Month Selection */}
       <FormControl fullWidth sx={{ mb: 2 }}>
         <InputLabel sx={{ color: 'white' }}>Months</InputLabel>
         <Select
@@ -87,22 +79,9 @@ const TimeFilter = ({ filters, onChange }) => {
           value={filters.selectedMonths || []}
           onChange={(e) => handleChange('selectedMonths', e.target.value)}
           input={<OutlinedInput label="Months" />}
-          renderValue={(selected) => selected.length === 0 ? 'All Months' : 
-            selected.map(month => getMonthName(month)).join(', ')}
-          sx={{ 
-            color: 'white',
-            '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.5)' },
-            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.7)' },
-            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' }
-          }}
+          renderValue={(selected) => selected.map(month => getMonthName(month)).join(', ')}
+          sx={{ color: 'white' }}
         >
-          <MenuItem value="all">
-            <Checkbox 
-              checked={filters.selectedMonths?.length === 0}
-              indeterminate={filters.selectedMonths?.length > 0 && filters.selectedMonths?.length < months.length}
-            />
-            <ListItemText primary="All Months" />
-          </MenuItem>
           {months.map(month => (
             <MenuItem key={month} value={month}>
               <Checkbox checked={filters.selectedMonths?.includes(month) || false} />
@@ -112,7 +91,6 @@ const TimeFilter = ({ filters, onChange }) => {
         </Select>
       </FormControl>
 
-      {/* Multiple Day Selection */}
       <FormControl fullWidth sx={{ mb: 2 }}>
         <InputLabel sx={{ color: 'white' }}>Days</InputLabel>
         <Select
@@ -120,21 +98,9 @@ const TimeFilter = ({ filters, onChange }) => {
           value={filters.selectedDays || []}
           onChange={(e) => handleChange('selectedDays', e.target.value)}
           input={<OutlinedInput label="Days" />}
-          renderValue={(selected) => selected.length === 0 ? 'All Days' : selected.join(', ')}
-          sx={{ 
-            color: 'white',
-            '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.5)' },
-            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255, 255, 255, 0.7)' },
-            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'white' }
-          }}
+          renderValue={(selected) => selected.join(', ')}
+          sx={{ color: 'white' }}
         >
-          <MenuItem value="all">
-            <Checkbox 
-              checked={filters.selectedDays?.length === 0}
-              indeterminate={filters.selectedDays?.length > 0 && filters.selectedDays?.length < days.length}
-            />
-            <ListItemText primary="All Days" />
-          </MenuItem>
           {days.map(day => (
             <MenuItem key={day} value={day}>
               <Checkbox checked={filters.selectedDays?.includes(day) || false} />
