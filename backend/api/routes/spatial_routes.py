@@ -71,7 +71,7 @@ def get_map_data():
                 FROM accidents 
                 WHERE {where_clause}
                 ORDER BY severity DESC
-                LIMIT 100000
+                LIMIT 300000
             """
         
         points = execute_query(points_query, params)
