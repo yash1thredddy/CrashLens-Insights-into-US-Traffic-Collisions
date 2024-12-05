@@ -152,7 +152,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👥 Authors
 
-- **[Your Name]** - *Initial work*
+- **Yashwanth Reddy Dasari Reddy**
+- **Adithya Reddy Chidirala**
+- **Hemanth Srinivas Reddy Chennur**
 
 ## 🙏 Acknowledgments
 
