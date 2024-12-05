@@ -20,7 +20,7 @@ import TimeFilter from '../filters/TimeFilter';
 //import VisualizationToggle from '../controls/VisualizationToggle';
 //import MapLegend from './MapLegend';
 import { MAPBOX_TOKEN, INITIAL_VIEW_STATE, HEXAGON_LAYER_SETTINGS } from '../../constants';
-import AreaSelector from './AreaSelector';
+//import AreaSelector from './AreaSelector';
 
 const US_STATES = [
   'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
