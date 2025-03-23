@@ -67,7 +67,7 @@ useEffect(() => {
         if (selectedState) params.append('state', selectedState);
         if (selectedCounty) params.append('county', selectedCounty);
 
-        const response = await axios.get(`/api/spatial/top-accidents?${params}`);
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/spatial/top-accidents?${params}`);
         setData(response.data.slice(0, 10));
         setError(null);
       } catch (err) {

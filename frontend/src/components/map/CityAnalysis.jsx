@@ -45,7 +45,7 @@ const CityAnalysis = ({ county, state, timeRange, filters }) => {
 
         console.log('Fetching city data with params:', Object.fromEntries(params));
         
-        const response = await axios.get(`/api/analysis/cities?${params}`);
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/analysis/cities?${params}`);
         console.log('City data response:', response.data);
         
         setCities(response.data);
@@ -92,7 +92,7 @@ const CityAnalysis = ({ county, state, timeRange, filters }) => {
 
       console.log('Fetching street data with params:', Object.fromEntries(params));
       
-      const response = await axios.get(`/api/analysis/streets?${params}`);
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/analysis/streets?${params}`);
       console.log('Street data response:', response.data);
       
       setStreets({ ...streets, [city]: response.data });

@@ -7,4 +7,4 @@ class Config:
         "port": "5432"
     }
     DEBUG = True
-    PORT = 5000
+    PORT = 5001

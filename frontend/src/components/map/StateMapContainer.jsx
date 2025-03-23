@@ -150,7 +150,7 @@ function StateMapContainer({ stateName, onBackToNational }) {
           filters.selectedHours.forEach(hour => params.append('hours[]', hour));
         }
 
-        const response = await axios.get(`/api/state/details?${params}`);
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/state/details?${params}`);
         setData(response.data);
       } catch (error) {
         setError(error.message);
