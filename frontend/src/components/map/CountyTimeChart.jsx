@@ -177,7 +177,7 @@ const fetchData = async (currentFilters = filters, brushSelection = null) => {
       currentFilters.selectedYears.forEach(year => params.append('years[]', year));
     }
 
-    const response = await axios.get(`/api/county/time-analysis?${params}`);
+    const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/county/time-analysis?${params}`);
     
     const formattedData = response.data.data.timeValues.map((value, index) => ({
       name: timeType === 'day' ? dayNames[value] :

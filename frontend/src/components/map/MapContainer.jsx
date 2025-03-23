@@ -76,7 +76,7 @@ useEffect(() => {
 
       const response = await axios({
         method: 'get',
-        url: `/api/spatial/map-data?${params}`,
+        url: `${process.env.REACT_APP_API_URL}/api/spatial/map-data?${params}`,
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',

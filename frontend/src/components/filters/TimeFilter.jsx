@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { 
   Box, 
   FormControl, 
@@ -16,22 +16,22 @@ const TimeFilter = ({ filters, onChange, sx = {} }) => {
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
-const handleChange = (field, value) => {
-  // If we're viewing day of week analysis, don't update calendar days
-  if (field === 'selectedDays' && filters.selectedDayOfWeek) {
-    return;
-  }
+  const handleChange = (field, value) => {
+    // If we're viewing day of week analysis, don't update calendar days
+    if (field === 'selectedDays' && filters.selectedDayOfWeek) {
+      return;
+    }
 
-  const newFilters = {
-    ...filters,
-    [field]: value
+    const newFilters = {
+      ...filters,
+      [field]: value
+    };
+    onChange(newFilters);
   };
-  onChange(newFilters);
-};
 
-  const getMonthName = (month) => {
+  const getMonthName = useCallback((month) => {
     return new Date(2000, month - 1).toLocaleString('default', { month: 'long' });
-  };
+  }, []);
 
   return (
     <Box
@@ -43,6 +43,7 @@ const handleChange = (field, value) => {
         color: 'white',
         width: 300,
         backdropFilter: 'blur(8px)',
+        border: '1px solid rgba(255, 255, 255, 0.2)', // Subtle border for contrast
         ...sx
       }}
     >
@@ -51,8 +52,9 @@ const handleChange = (field, value) => {
       </Typography>
 
       <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel sx={{ color: 'white' }}>Years</InputLabel>
+        <InputLabel id="years-label" sx={{ color: 'white' }}>Years</InputLabel>
         <Select
+          labelId="years-label"
           multiple
           value={filters.selectedYears || []}
           onChange={(e) => handleChange('selectedYears', e.target.value)}
@@ -73,8 +75,9 @@ const handleChange = (field, value) => {
       </FormControl>
 
       <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel sx={{ color: 'white' }}>Months</InputLabel>
+        <InputLabel id="months-label" sx={{ color: 'white' }}>Months</InputLabel>
         <Select
+          labelId="months-label"
           multiple
           value={filters.selectedMonths || []}
           onChange={(e) => handleChange('selectedMonths', e.target.value)}
@@ -92,8 +95,9 @@ const handleChange = (field, value) => {
       </FormControl>
 
       <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel sx={{ color: 'white' }}>Days</InputLabel>
+        <InputLabel id="days-label" sx={{ color: 'white' }}>Days</InputLabel>
         <Select
+          labelId="days-label"
           multiple
           value={filters.selectedDays || []}
           onChange={(e) => handleChange('selectedDays', e.target.value)}
