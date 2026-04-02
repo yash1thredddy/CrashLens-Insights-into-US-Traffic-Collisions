@@ -75,10 +75,11 @@ if __name__ == '__main__':
         print("❌ Database connection failed. Exiting...")
         exit(1)
         
+    db_name = Config.DATABASE_CONFIG['dbname']
     print(f"""
     ✅ Debug mode: {Config.DEBUG}
     🌐 Port: {port}
-    💾 Database: {Config.DATABASE_CONFIG['dbname']}
+    💾 Database: {db_name}
     ----------------------------------------
     """)
     
