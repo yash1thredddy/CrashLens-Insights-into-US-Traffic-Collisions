@@ -80,8 +80,7 @@ def get_city_analysis():
         print(f"Error in get_city_analysis: {str(e)}")
         print(f"Traceback: {traceback.format_exc()}")
         return jsonify({
-            'error': 'Internal server error',
-            'message': str(e)
+            'error': 'Internal server error'
         }), 500
 
 @analysis_bp.route('/api/county/time-analysis')
@@ -187,8 +186,7 @@ def get_county_time_analysis():
         print(f"Error in get_county_time_analysis: {str(e)}")
         print(f"Traceback: {traceback.format_exc()}")
         return jsonify({
-            'error': 'Internal server error',
-            'message': str(e)
+            'error': 'Internal server error'
         }), 500
 
 @analysis_bp.route('/api/analysis/streets')
@@ -269,6 +267,5 @@ def get_street_analysis():
         print(f"Error in get_street_analysis: {str(e)}")
         print(f"Traceback: {traceback.format_exc()}")
         return jsonify({
-            'error': 'Internal server error',
-            'message': str(e)
+            'error': 'Internal server error'
         }), 500

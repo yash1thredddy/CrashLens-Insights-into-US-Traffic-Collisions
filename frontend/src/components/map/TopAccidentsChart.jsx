@@ -237,7 +237,7 @@ bars.on('mouseover', function(event, d) {
             size="small"
             variant="outlined"
             startIcon={<Map size={16} />}
-            onClick={() => window.location.href = `#/state/${selectedState}`}
+            onClick={() => window.location.href = `#/state/${encodeURIComponent(selectedState)}`}
             sx={{
               color: 'white',
               borderColor: 'rgba(255, 255, 255, 0.3)',

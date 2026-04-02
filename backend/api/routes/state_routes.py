@@ -145,7 +145,5 @@ def get_state_details():
         print(f"Error in get_state_details: {str(e)}")
         print(f"Traceback: {traceback.format_exc()}")
         return jsonify({
-            'error': 'Internal server error',
-            'message': str(e),
-            'traceback': traceback.format_exc()
+            'error': 'Internal server error'
         }), 500

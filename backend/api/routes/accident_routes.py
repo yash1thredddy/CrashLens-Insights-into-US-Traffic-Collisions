@@ -41,4 +41,5 @@ def get_accidents():
         })
         
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"Error in get_accidents: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500

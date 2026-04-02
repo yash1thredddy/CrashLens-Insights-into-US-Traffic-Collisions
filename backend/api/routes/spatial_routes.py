@@ -143,8 +143,7 @@ def get_map_data():
         print(f"Error in get_map_data: {str(e)}")
         print(f"Traceback: {traceback.format_exc()}")
         return jsonify({
-            'error': 'Internal server error',
-            'message': str(e)
+            'error': 'Internal server error'
         }), 500
         
 # Add this to spatial_routes.py
@@ -248,8 +247,7 @@ def get_top_accidents():
         print(f"Error in get_top_accidents: {str(e)}")
         print(f"Traceback: {traceback.format_exc()}")
         return jsonify({
-            'error': 'Internal server error',
-            'message': str(e)
+            'error': 'Internal server error'
         }), 500
         
         # Add to spatial_routes.py
@@ -270,6 +268,5 @@ def get_states():
     except Exception as e:
         print(f"Error in get_states: {str(e)}")
         return jsonify({
-            'error': 'Internal server error',
-            'message': str(e)
+            'error': 'Internal server error'
         }), 500
