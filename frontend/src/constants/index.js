@@ -1,5 +1,5 @@
 // src/constants/index.js
-export const MAPBOX_TOKEN = '***REMOVED***';
+export const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 export const INITIAL_VIEW_STATE = {
   latitude: 37.8,

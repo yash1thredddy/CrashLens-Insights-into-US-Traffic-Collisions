@@ -2,7 +2,6 @@
   "name": "accident-visualization",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:5000",
   "dependencies": {
     "@deck.gl/aggregation-layers": "^8.9.0",
     "@deck.gl/core": "^8.9.0",
@@ -12,9 +11,6 @@
     "@emotion/styled": "^11.13.5",
     "@mui/icons-material": "^5.14.0",
     "@mui/material": "^5.16.8",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
     "axios": "^1.7.8",
     "d3": "^7.9.0",
     "d3-scale": "^4.0.2",
@@ -27,32 +23,18 @@
     "react-leaflet": "^4.2.1",
     "react-map-gl": "^7.1.0",
     "react-resizable": "^3.0.5",
-    "react-scripts": "5.0.1",
-    "recharts": "^2.13.3",
-    "web-vitals": "^2.1.4"
+    "recharts": "^2.13.3"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.1",
+    "jsdom": "^29.0.1",
+    "vite": "^8.0.3",
+    "vitest": "^4.1.2"
   }
 }

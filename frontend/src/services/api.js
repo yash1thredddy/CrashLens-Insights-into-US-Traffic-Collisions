@@ -1,7 +1,7 @@
 // src/services/api.js
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:5001/api';
+const BASE_URL = '/api';
 
 export const getMapData = async (params) => {
   try {
